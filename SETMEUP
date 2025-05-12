@@ -1,11 +1,18 @@
 #!/bin/bash
-if ! (which python3 >/dev/null && python3 --version | grep ' 3.' >/dev/null); then
-  echo "You must have python 3 installed to run this."
+if ! (which npm >/dev/null && npm --version | egrep '^9.6.7' >/dev/null); then
+  echo "You must have npm 9.6.7 installed and in your PATH to run this."
   exit 1
 fi
 
-pushd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+pushd $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) >/dev/null
 
-python3 $(dirname "$(readlink -f "$0")")/setmeup.py
+output=$(npm ls 2>&1)
+if [ $?==1 ]; then
+  if [[ "$output" == *"UNMET DEPENDENCY electron@^36.2.0"* ]]; then
+    npm install >/dev/null 2>&1
+    sudo chown root:root node_modules/electron/dist/chrome-sandbox
+    sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+  fi
+fi
 
-popd
+popd >/dev/null
